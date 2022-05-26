@@ -1,9 +1,4 @@
-open Base
-open Stdio
 module C = Configurator.V1
-
-let write_sexp fn sexp =
-  Out_channel.write_all fn ~data:(Sexp.to_string sexp)
 
 let () =
   C.main ~name:"secp256k1" (fun c ->
@@ -19,5 +14,5 @@ let () =
         Option.value (C.Pkg_config.query pc ~package:"libsecp256k1") ~default
     in
 
-    write_sexp "c_flags.sexp"         (sexp_of_list sexp_of_string conf.cflags);
-    write_sexp "c_library_flags.sexp" (sexp_of_list sexp_of_string conf.libs))
+    C.Flags.write_sexp "c_flags.sexp"         (sexp_of_list sexp_of_string conf.cflags);
+    C.Flags.write_sexp "c_library_flags.sexp" (sexp_of_list sexp_of_string conf.libs))
