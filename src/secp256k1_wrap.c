@@ -27,7 +27,7 @@ static struct custom_operations secp256k1_context_ops = {
 };
 
 static value alloc_context (secp256k1_context *ctx) {
-    value ml_ctx = alloc_custom(&secp256k1_context_ops, sizeof(secp256k1_context *), 0, 1);
+    value ml_ctx = caml_alloc_custom(&secp256k1_context_ops, sizeof(secp256k1_context *), 0, 1);
     Context_val(ml_ctx) = ctx;
     return ml_ctx;
 }
