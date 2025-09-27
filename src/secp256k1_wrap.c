@@ -65,21 +65,21 @@ CAMLprim value ec_seckey_verify (value ctx, value sk) {
 }
 
 CAMLprim value ec_privkey_negate(value ctx, value sk) {
-    int ret = secp256k1_ec_privkey_negate(Context_val (ctx),
-                                          Caml_ba_data_val(sk));
+    int ret = secp256k1_ec_seckey_negate(Context_val (ctx),
+                                         Caml_ba_data_val(sk));
     return Val_unit;
 }
 
 CAMLprim value ec_privkey_tweak_add(value ctx, value sk, value tweak) {
-    return Val_bool(secp256k1_ec_privkey_tweak_add(Caml_ba_data_val(ctx),
+    return Val_bool(secp256k1_ec_seckey_tweak_add(Caml_ba_data_val(ctx),
                                                    Caml_ba_data_val(sk),
                                                    Caml_ba_data_val(tweak)));
 }
 
 CAMLprim value ec_privkey_tweak_mul(value ctx, value sk, value tweak) {
-    return Val_bool(secp256k1_ec_privkey_tweak_mul(Caml_ba_data_val(ctx),
-                                                   Caml_ba_data_val(sk),
-                                                   Caml_ba_data_val(tweak)));
+    return Val_bool(secp256k1_ec_seckey_tweak_mul(Caml_ba_data_val(ctx),
+                                                  Caml_ba_data_val(sk),
+                                                  Caml_ba_data_val(tweak)));
 }
 
 CAMLprim value ec_pubkey_create (value ctx, value buf, value sk) {
