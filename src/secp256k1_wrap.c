@@ -2,6 +2,8 @@
 
 #include <secp256k1.h>
 #include <secp256k1_recovery.h>
+#include <secp256k1_extrakeys.h>
+#include <secp256k1_schnorrsig.h>
 
 #include <caml/mlvalues.h>
 #include <caml/memory.h>
@@ -225,4 +227,102 @@ CAMLprim value ecdsa_recover(value ctx, value buf, value signature, value msg) {
                                             Caml_ba_data_val(buf),
                                             Caml_ba_data_val(signature),
                                             Caml_ba_data_val(msg)));
+}
+
+value caml_secp256k1_xonly_pubkey_from_pubkey(value v_ctx, value v_pubkey, value v_out) {
+  return Val_bool(secp256k1_xonly_pubkey_from_pubkey(Caml_ba_data_val(v_ctx),
+                                                     Caml_ba_data_val(v_out),
+                                                     NULL,
+                                                     Caml_ba_data_val(v_pubkey)));
+}
+
+value caml_secp256k1_xonly_pubkey_parse(value v_ctx, value v_out, value v_input) {
+  return Val_bool(secp256k1_xonly_pubkey_parse(Caml_ba_data_val(v_ctx),
+                                               Caml_ba_data_val(v_out),
+                                               Caml_ba_data_val(v_input)));
+}
+
+value caml_secp256k1_xonly_pubkey_serialize(value v_ctx, value v_out, value v_key) {
+  return Val_bool(secp256k1_xonly_pubkey_serialize(Caml_ba_data_val(v_ctx),
+                                                   Caml_ba_data_val(v_out),
+                                                   Caml_ba_data_val(v_key)));
+}
+
+value caml_secp256k1_xonly_pubkey_cmp(value v_a, value v_b) {
+  unsigned char buf_a[32], buf_b[32];
+  secp256k1_xonly_pubkey_serialize(NULL, buf_a, Caml_ba_data_val(v_a));
+  secp256k1_xonly_pubkey_serialize(NULL, buf_b, Caml_ba_data_val(v_b));
+  return Val_int(memcmp(buf_a, buf_b, 32));
+}
+
+value caml_secp256k1_xonly_pubkey_tweak_add(value v_ctx, value v_out_pubkey, value v_xonly_pubkey, value v_tweak) {
+  return Val_bool(secp256k1_xonly_pubkey_tweak_add(Caml_ba_data_val(v_ctx),
+                                                   Caml_ba_data_val(v_out_pubkey),
+                                                   Caml_ba_data_val(v_xonly_pubkey),
+                                                   Caml_ba_data_val(v_tweak)));
+}
+
+value caml_secp256k1_xonly_pubkey_tweak_add_check(value v_ctx, value v_tweaked32, value v_parity, value v_internal, value v_tweak) {
+  return Val_bool(secp256k1_xonly_pubkey_tweak_add_check(Caml_ba_data_val(v_ctx),
+                                                         Caml_ba_data_val(v_tweaked32),
+                                                         Int_val(v_parity),
+                                                         Caml_ba_data_val(v_internal),
+                                                         Caml_ba_data_val(v_tweak)));
+}
+
+value caml_secp256k1_keypair_create(value v_ctx, value v_keypair_out, value v_seckey) {
+  return Val_bool(secp256k1_keypair_create(Caml_ba_data_val(v_ctx),
+                                           Caml_ba_data_val(v_keypair_out),
+                                           Caml_ba_data_val(v_seckey)));
+}
+
+value caml_secp256k1_keypair_pub(value v_ctx, value v_pubkey_out, value v_keypair) {
+  return Val_bool(secp256k1_keypair_pub(Caml_ba_data_val(v_ctx),
+                                        Caml_ba_data_val(v_pubkey_out),
+                                        Caml_ba_data_val(v_keypair)));
+}
+
+value caml_secp256k1_keypair_sec(value v_ctx, value v_seckey_out, value v_keypair) {
+  return Val_bool(secp256k1_keypair_sec(Caml_ba_data_val(v_ctx),
+                                        Caml_ba_data_val(v_seckey_out),
+                                        Caml_ba_data_val(v_keypair)));
+}
+
+value caml_secp256k1_keypair_xonly_pub(value v_ctx, value v_xonly_out, value v_keypair) {
+  return Val_bool(secp256k1_keypair_xonly_pub(Caml_ba_data_val(v_ctx),
+                                              Caml_ba_data_val(v_xonly_out),
+                                              NULL,
+                                              Caml_ba_data_val(v_keypair)));
+}
+
+value caml_secp256k1_keypair_xonly_tweak_add(value v_ctx, value v_keypair, value v_tweak) {
+  return Val_bool(secp256k1_keypair_xonly_tweak_add(Caml_ba_data_val(v_ctx),
+                                                    Caml_ba_data_val(v_keypair),
+                                                    Caml_ba_data_val(v_tweak)));
+}
+
+value caml_secp256k1_schnorrsig_sign32(value v_ctx, value v_sig, value v_msg, value v_keypair, value v_aux) {
+  const unsigned char *aux = Is_block(v_aux) ? Caml_ba_data_val(Field(v_aux, 0)) : NULL;
+  return Val_bool(secp256k1_schnorrsig_sign32(Caml_ba_data_val(v_ctx),
+                                              Caml_ba_data_val(v_sig),
+                                              Caml_ba_data_val(v_msg),
+                                              Caml_ba_data_val(v_keypair),
+                                              aux));
+}
+
+value caml_secp256k1_schnorrsig_verify(value v_ctx, value v_sig, value v_msg, value v_xonly_pub) {
+  return Val_bool(secp256k1_schnorrsig_verify(Caml_ba_data_val(v_ctx),
+                                              Caml_ba_data_val(v_sig),
+                                              Caml_ba_data_val(v_msg),
+                                              Caml_ba_array_val(v_msg)->dim[0],
+                                              Caml_ba_data_val(v_xonly_pub)));
+}
+
+value caml_secp256k1_tagged_sha256(value v_ctx, value v_out_hash32, value v_tag, value v_msg) {
+  return Val_bool(secp256k1_tagged_sha256(Caml_ba_data_val(v_ctx),
+                                          Caml_ba_data_val(v_out_hash32),
+                                          Caml_ba_data_val(v_tag),
+                                          Caml_ba_array_val(v_tag)->dim[0],
+                                          Caml_ba_data_val(v_msg),
+                                          Caml_ba_array_val(v_msg)->dim[0]));
 }

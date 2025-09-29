@@ -144,3 +144,27 @@ module Sign : sig
   val recover_exn : Context.t -> signature:recoverable t -> msg:msg -> Key.public Key.t
   val recover : Context.t -> signature:recoverable t -> msg:msg -> (Key.public Key.t, string) result
 end
+
+
+type pubkey = buffer
+type xonly_pubkey = buffer
+type keypair = buffer
+type seckey = buffer
+type tweak = buffer
+type bytes32 = buffer
+type schnorrsig = buffer
+
+val xonly_pubkey_from_pubkey : Context.t -> pubkey -> xonly_pubkey -> bool
+val xonly_pubkey_parse : Context.t -> xonly_pubkey -> bytes32 -> bool
+val xonly_pubkey_serialize : Context.t -> bytes32 -> xonly_pubkey -> bool
+val xonly_pubkey_cmp : xonly_pubkey -> xonly_pubkey -> int
+val xonly_pubkey_tweak_add : Context.t -> pubkey -> xonly_pubkey -> tweak -> bool
+val xonly_pubkey_tweak_add_check : Context.t -> bytes32 -> int -> xonly_pubkey -> tweak -> bool
+val keypair_create : Context.t -> keypair -> seckey -> bool
+val keypair_pub : Context.t -> pubkey -> keypair -> bool
+val keypair_sec : Context.t -> seckey -> keypair -> bool
+val keypair_xonly_pub : Context.t -> xonly_pubkey -> keypair -> bool
+val keypair_xonly_tweak_add : Context.t -> keypair -> tweak -> bool
+val raw_schnorrsig_sign : Context.t -> schnorrsig -> bytes32 -> keypair -> bytes32 option -> bool
+val raw_schnorrsig_verify : Context.t -> schnorrsig -> buffer -> xonly_pubkey -> bool
+val tagged_sha256 : Context.t -> bytes32 -> tag:buffer -> msg:buffer -> bool
