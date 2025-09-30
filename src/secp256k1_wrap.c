@@ -51,7 +51,7 @@ CAMLprim value context_create (value flags) {
 
 CAMLprim value context_randomize (value ctx, value seed) {
     return Val_bool(secp256k1_context_randomize(Context_val(ctx),
-                                                String_val(seed)));
+                                                Caml_ba_data_val(seed)));
 }
 
 CAMLprim value context_clone (value ctx) {
