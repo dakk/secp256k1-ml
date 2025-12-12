@@ -2,5 +2,4 @@ _build
 *.install
 **/.merlin
 /secp256k1*
-/docs/secp256k1/
-/docs/odoc.support/
+/docs/odoc.support/fonts/*
