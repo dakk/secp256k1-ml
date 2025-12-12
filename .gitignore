@@ -1,4 +1,6 @@
 _build
 *.install
 **/.merlin
-secp256k1*
+/secp256k1*
+/docs/secp256k1/
+/docs/odoc.support/

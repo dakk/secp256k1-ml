@@ -144,3 +144,29 @@ module Sign : sig
   val recover_exn : Context.t -> signature:recoverable t -> msg:msg -> Key.public Key.t
   val recover : Context.t -> signature:recoverable t -> msg:msg -> (Key.public Key.t, string) result
 end
+
+module XOPubkey : sig
+  type t
+  val from_pubkey_exn : Context.t -> Key.public Key.t -> buffer
+  val parse_exn : Context.t -> buffer -> t
+  val serialize_exn : Context.t -> t -> buffer
+  val compare : t -> t -> int
+end
+
+module Keypair : sig
+  type t
+  val create_exn : Context.t -> Key.secret Key.t -> t
+  val pub_exn : Context.t -> t -> Key.public Key.t
+  val sec_exn : Context.t -> t -> Key.secret Key.t
+  val xonly_pub_exn : Context.t -> t -> XOPubkey.t
+end
+
+val tagged_sha256_exn : Context.t -> tag:buffer -> msg:buffer -> buffer
+
+module Schnorr : sig
+  type t
+  val of_bytes : buffer -> t
+  val to_bytes : t -> buffer
+  val sign32 : Context.t -> buffer -> Keypair.t -> buffer option -> t
+  val verify : Context.t -> t -> buffer -> XOPubkey.t -> bool
+end

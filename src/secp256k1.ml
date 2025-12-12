@@ -72,8 +72,8 @@ module Key = struct
   let public_bytes = 64
 
   let length : type a. a t -> int = function
-    | Sk _ -> 32
-    | Pk _ -> 64
+    | Sk _ -> secret_bytes
+    | Pk _ -> public_bytes
 
   let equal : type a. a t -> a t -> bool = fun a b ->
     match a, b with
@@ -470,3 +470,92 @@ module Sign = struct
     | Invalid_argument msg -> Error msg
 end
 
+type bytes32 = buffer
+
+let invalid fmt = Printf.ksprintf invalid_arg fmt
+
+(* X-only public key *)
+module XOPubkey = struct
+
+type t = buffer
+let size = 64
+
+external xonly_pubkey_from_pubkey : Context.t -> buffer -> t -> bool = "caml_secp256k1_xonly_pubkey_from_pubkey" [@@noalloc]
+external xonly_pubkey_parse : Context.t -> t -> bytes32 -> bool = "caml_secp256k1_xonly_pubkey_parse" [@@noalloc]
+external xonly_pubkey_serialize : Context.t -> bytes32 -> t -> bool = "caml_secp256k1_xonly_pubkey_serialize" [@@noalloc]
+external xonly_pubkey_cmp : t -> t -> int = "caml_secp256k1_xonly_pubkey_cmp" [@@noalloc]
+external _xonly_pubkey_tweak_add : Context.t -> pubkey:buffer -> t -> tweak:buffer -> bool = "caml_secp256k1_xonly_pubkey_tweak_add" [@@noalloc]
+external _xonly_pubkey_tweak_add_check : Context.t -> bytes32 -> int -> t -> tweak:buffer -> bool = "caml_secp256k1_xonly_pubkey_tweak_add_check" [@@noalloc]
+
+let from_pubkey_exn ctx (pk:Key.public Key.t) =
+  let r = BA.create size in
+  if xonly_pubkey_from_pubkey ctx (Key.to_buffer pk) r then r else invalid_arg __FUNCTION__
+
+let parse_exn ctx buf =
+  if BA.length buf <> 32 then invalid "%s: expected %u, got %u bytes" __FUNCTION__ 32 (BA.length buf);
+  let r = BA.create size in
+  if xonly_pubkey_parse ctx r buf then r else invalid_arg __FUNCTION__
+
+let serialize_exn ctx t =
+  let r = BA.create 32 in
+  if xonly_pubkey_serialize ctx r t then r else invalid_arg __FUNCTION__
+
+let compare = xonly_pubkey_cmp
+
+end
+
+module Keypair = struct
+
+type t = buffer
+let size = 96
+
+external keypair_create : Context.t -> t -> buffer -> bool = "caml_secp256k1_keypair_create" [@@noalloc]
+external keypair_pub : Context.t -> buffer -> t -> bool = "caml_secp256k1_keypair_pub" [@@noalloc]
+external keypair_sec : Context.t -> buffer -> t -> bool = "caml_secp256k1_keypair_sec" [@@noalloc]
+external keypair_xonly_pub : Context.t -> XOPubkey.t -> t -> bool = "caml_secp256k1_keypair_xonly_pub" [@@noalloc]
+external _keypair_xonly_tweak_add : Context.t -> t -> tweak:buffer -> bool = "caml_secp256k1_keypair_xonly_tweak_add" [@@noalloc]
+
+let create_exn ctx (sk:Key.secret Key.t) =
+  let t = BA.create size in
+  if keypair_create ctx t (Key.to_buffer sk) then t else invalid_arg __FUNCTION__
+
+let pub_exn ctx t =
+  let pub = BA.create Key.public_bytes in
+  if keypair_pub ctx pub t then Key.Pk pub else invalid_arg __FUNCTION__
+
+let sec_exn ctx t =
+  let sec = BA.create Key.secret_bytes in
+  if keypair_sec ctx sec t then Key.Sk sec else invalid_arg __FUNCTION__
+
+let xonly_pub_exn ctx t =
+  let xpk = BA.create XOPubkey.size in
+  if keypair_xonly_pub ctx xpk t then xpk else invalid_arg __FUNCTION__
+
+end
+
+external tagged_sha256 : Context.t -> bytes32 -> tag:buffer -> msg:buffer -> bool = "caml_secp256k1_tagged_sha256" [@@noalloc]
+
+let tagged_sha256_exn ctx ~tag ~msg =
+  let r = BA.create 32 in
+  if tagged_sha256 ctx r ~tag ~msg then r else invalid_arg __FUNCTION__
+
+module Schnorr = struct
+
+type t = buffer
+let size = 64
+
+let to_bytes = Fun.id
+let of_bytes b = assert (BA.length b = size); b
+
+external raw_schnorrsig_sign32 : Context.t -> t -> bytes32 -> Keypair.t -> bytes32 option -> bool = "caml_secp256k1_schnorrsig_sign32" [@@noalloc]
+external raw_schnorrsig_verify : Context.t -> t -> buffer -> XOPubkey.t -> bool = "caml_secp256k1_schnorrsig_verify" [@@noalloc]
+
+let sign32 ctx buf kp aux =
+  let t = BA.create size in
+  if BA.length buf <> 32 then invalid "%s: expecting to sign exactly 32 bytes, got %d" __FUNCTION__ (BA.length buf);
+  begin match aux with None -> () | Some b -> if BA.length b <> 32 then invalid "%s: expecting exactly 32 bytes of aux random, got %d" __FUNCTION__ (BA.length b) end;
+  if raw_schnorrsig_sign32 ctx t buf kp aux then t else invalid_arg __FUNCTION__
+
+let verify = raw_schnorrsig_verify
+
+end
