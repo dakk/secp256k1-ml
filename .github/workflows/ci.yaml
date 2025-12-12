@@ -1,16 +1,11 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
-    branches: [ main ]
-  release:
-    types: [created]
+    branches: [master]
+  push:
+    branches: [master]
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
   test:
@@ -18,23 +13,24 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ocaml-version: ["4.14"] 
+        ocaml-version: ["4.14", "5.1", "5.2", "5.3", "5.4"] 
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Use OCaml ${{ matrix.ocaml-version }}
-        uses: ocaml/setup-ocaml@v3
-        with:
-          ocaml-compiler: ${{ matrix.ocaml-version }}
+    - name: Use OCaml ${{ matrix.ocaml-version }}
+      uses: ocaml/setup-ocaml@v3
+      with:
+        ocaml-compiler: ${{ matrix.ocaml-version }}
 
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libsecp256k1-dev
+    - name: Install system dependencies
+      run: sudo apt-get update && sudo apt-get install -y libsecp256k1-dev
 
-      - name: Update opam repo
-        run: opam update
+    - name: Update opam repo
+      run: opam update
 
-      - name: Install deps
-        run: opam install . --deps-only --with-test --with-doc
+    - name: Install deps
+      run: opam install . --deps-only --with-test --with-doc
 
-      - name: Build and test
-        run: dune build @install @runtest @doc 
+    - name: Build and test
+      run: dune build @install @runtest @doc 
