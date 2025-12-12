@@ -1,6 +1,6 @@
 # libsecp256k1 wrapper for OCaml
 
-[![Build Status](https://travis-ci.org/dakk/secp256k1-ml.svg)](https://travis-ci.org/dakk/secp256k1-ml)
+![CI Status](https://github.com/dakk/qlasskit/actions/workflows/ci.yaml/badge.svg)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dakk/bitcoinml/blob/master/LICENSE)
 
 
@@ -11,10 +11,7 @@ only a subset of functionalities are available:
 - Elliptic curve: public key creation
 - ECDSA: verify, sign, recover
 
-
 All exchanged data (pubkey, signature, seckey) are represented as hex strings.
-
-
 
 ## Contributions
 
