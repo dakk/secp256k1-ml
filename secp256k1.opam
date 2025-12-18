@@ -28,7 +28,7 @@ build: [
 ]
 
 depends: [
-  "ocaml"
+  "ocaml" {>= "4.12.0"}
   "dune" {>= "1.0"}
   "base" {build & >= "v0.12.0"}
   "stdio" {build & >= "v0.9.0"}
