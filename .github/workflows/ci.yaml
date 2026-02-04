@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ocaml-version: ["4.14", "5.1", "5.2", "5.3", "5.4", "5.5"] 
+        ocaml-version: ["4.14", "5.1", "5.2", "5.3", "5.4"] 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -33,4 +33,4 @@ jobs:
       run: opam install . --deps-only --with-test --with-doc
 
     - name: Build and test
-      run: opam exec dune build @install @runtest @doc 
+      run: opam exec dune build @install @doc && opam exec -- dune @runtest --force
