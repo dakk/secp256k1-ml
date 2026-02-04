@@ -58,8 +58,8 @@ module Context = struct
 end
 
 module Key = struct
-  type secret
-  type public
+  type secret = private [`Secret]
+  type public = private [`Public]
   type _ t =
     | Sk : buffer -> secret t
     | Pk : buffer -> public t
@@ -255,8 +255,8 @@ module Key = struct
 end
 
 module Sign = struct
-  type plain
-  type recoverable
+  type plain = private [`Plain]
+  type recoverable = private [`Recoverable]
   type _ t =
     | P : buffer -> plain t
     | R : buffer -> recoverable t
